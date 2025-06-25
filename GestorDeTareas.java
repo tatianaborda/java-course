@@ -6,11 +6,14 @@ public class GestorDeTareas {
         Scanner sc = new Scanner(System.in);
         int opcion;
         int totalPrioridad = 0;
+        Actividad ultimaTarea = null;
 
         do {
             mostrarMenu();
             opcion = leerOpcion(sc);
-            totalPrioridad = ejecutarOpcion(opcion, sc, totalPrioridad);
+            Resultado resultado = ejecutarOpcion(opcion, sc, totalPrioridad, ultimaTarea);
+            totalPrioridad = resultado.totalPrioridad;
+            ultimaTarea = resultado.tarea;
         } while (opcion != 3);
 
         sc.close();
@@ -19,7 +22,7 @@ public class GestorDeTareas {
     public static void mostrarMenu() {
         System.out.println("\n=== Gestor de Tareas ===");
         System.out.println("1. Agregar tarea");
-        System.out.println("2. Ver tareas (pendiente)");
+        System.out.println("2. Ver última tarea");
         System.out.println("3. Salir");
     }
 
@@ -28,27 +31,30 @@ public class GestorDeTareas {
         return sc.nextInt();
     }
 
-    public static int ejecutarOpcion(int opcion, Scanner sc, int totalPrioridad) {
+    public static Resultado ejecutarOpcion(int opcion, Scanner sc, int totalPrioridad, Actividad tarea) {
         sc.nextLine(); // limpiar buffer
 
         switch (opcion) {
             case 1:
-                totalPrioridad = agregarTarea(sc, totalPrioridad);
-                break;
+                return agregarTarea(sc, totalPrioridad);
             case 2:
-                System.out.println("Funcionalidad en desarrollo...");
+                if (tarea != null) {
+                    tarea.ejecutar(); // polimorfismo
+                } else {
+                    System.out.println("Aún no hay tareas registradas.");
+                }
                 break;
             case 3:
-                System.out.println("Saliendo...");
+                System.out.println("Hasta luego!");
                 break;
             default:
-                System.out.println("Opción inválida.");
+                System.out.println("Opción inválida. Intentá de nuevo.");
         }
 
-        return totalPrioridad;
+        return new Resultado(totalPrioridad, tarea);
     }
 
-    public static int agregarTarea(Scanner sc, int totalPrioridad) {
+    public static Resultado agregarTarea(Scanner sc, int totalPrioridad) {
         System.out.print("Nombre de la tarea: ");
         String nombre = sc.nextLine();
 
@@ -58,13 +64,24 @@ public class GestorDeTareas {
 
         if (prioridad >= 1 && prioridad <= 5) {
             totalPrioridad += prioridad;
-            System.out.println("Tarea '" + nombre + "' agregada con prioridad " + prioridad);
+            Tarea nueva = new Tarea(nombre, prioridad);
+            System.out.println("Tarea agregada.");
             System.out.println("Total acumulado de prioridades: " + totalPrioridad);
+            return new Resultado(totalPrioridad, nueva);
         } else {
             System.out.println("Prioridad no válida.");
+            return new Resultado(totalPrioridad, null);
         }
+    }
 
-        return totalPrioridad;
+    // Clase auxiliar para retornar múltiples valores
+    public static class Resultado {
+        int totalPrioridad;
+        Actividad tarea;
+
+        public Resultado(int totalPrioridad, Actividad tarea) {
+            this.totalPrioridad = totalPrioridad;
+            this.tarea = tarea;
+        }
     }
 }
-
